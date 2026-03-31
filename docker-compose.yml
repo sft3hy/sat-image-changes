@@ -1,5 +1,6 @@
 services:
   backend:
+    image: harbor.i2cv.io/cosmichorizon/sat-images-backend
     build:
       context: ./backend
     ports:
@@ -14,6 +15,7 @@ services:
       - "host.docker.internal:host-gateway"
 
   frontend:
+    image: harbor.i2cv.io/cosmichorizon/sat-images-frontend
     build:
       context: ./frontend
     ports:
@@ -24,8 +26,8 @@ services:
       - backend
 
   ispy-broker:
+    image: harbor.i2cv.io/cosmichorizon/sat-images-broker
     build:
       context: ./ispy
     ports:
       - "3000:3000"
-
