@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sat-image-changes.fullname" . }}-broker
+  labels:
+    {{- include "sat-image-changes.labels" . | nindent 4 }}
+    component: broker
+spec:
+  replicas: {{ .Values.broker.replicaCount | default .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "sat-image-changes.selectorLabels" . | nindent 6 }}
+      component: broker
+  template:
+    metadata:
+      labels:
+        {{- include "sat-image-changes.selectorLabels" . | nindent 8 }}
+        component: broker
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: broker
+          image: "{{ .Values.broker.image.repository }}:{{ .Values.broker.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.broker.image.pullPolicy | default .Values.image.pullPolicy }}
+          ports:
+            - name: broker
+              containerPort: {{ .Values.broker.service.portBroker }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.broker.resources | nindent 12 }}

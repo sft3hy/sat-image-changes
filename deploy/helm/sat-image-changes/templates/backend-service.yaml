@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sat-image-changes.fullname" . }}-backend
+  labels:
+    {{- include "sat-image-changes.labels" . | nindent 4 }}
+    component: backend
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.backend.service.portApi }}
+      targetPort: api
+      protocol: TCP
+      name: api
+  selector:
+    {{- include "sat-image-changes.selectorLabels" . | nindent 4 }}
+    component: backend

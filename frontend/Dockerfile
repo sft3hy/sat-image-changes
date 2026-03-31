@@ -1,0 +1,18 @@
+FROM node:20-slim
+
+WORKDIR /app
+
+# Copy package files first
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy application code
+COPY . .
+
+# Expose Vite port
+EXPOSE 5173
+
+# Run Vite dev server with --host for Docker accessibility
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

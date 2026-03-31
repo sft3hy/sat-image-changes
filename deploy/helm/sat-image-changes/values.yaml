@@ -1,0 +1,94 @@
+replicaCount: 1
+
+image:
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: s-hxl2n
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+
+service:
+  type: ClusterIP
+  portWeb: 5173
+
+frontend:
+  replicaCount: 1
+  image:
+    repository: harbor.i2cv.io/cosmichorizon/sat-image-frontend
+    tag: ""
+  service:
+    portWeb: 5173
+  resources:
+    requests:
+      cpu: "2"
+      memory: "4Gi"
+    limits:
+      cpu: "4"
+      memory: "8Gi"
+
+backend:
+  replicaCount: 1
+  image:
+    repository: harbor.i2cv.io/cosmichorizon/sat-image-backend
+    tag: ""
+  service:
+    portApi: 8000
+  env:
+    ollamaBaseUrl: "http://host.docker.internal:11434"
+    dataBasePath: "/app/data"
+  resources:
+    requests:
+      cpu: "2"
+      memory: "4Gi"
+    limits:
+      cpu: "4"
+      memory: "8Gi"
+
+broker:
+  replicaCount: 1
+  image:
+    repository: harbor.i2cv.io/cosmichorizon/sat-image-broker
+    tag: ""
+  service:
+    portBroker: 3000
+  resources:
+    requests:
+      cpu: "2"
+      memory: "4Gi"
+    limits:
+      cpu: "4"
+      memory: "8Gi"
+
+ingress:
+  enabled: true
+  className: "cosmichorizon-nginx"
+  annotations:
+    argocd.argoproj.io/tracking-id: sat-image-changes:networking.k8s.io/Ingress:cosmichorizon/sat-image-changes
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      rewrite ^(/sat-image-changes)$ $1/ permanent;
+    external-dns.alpha.kubernetes.io/target: test-cosmichorizon-worker-68a3110f01feebd0.elb.us-gov-west-1.amazonaws.com
+
+  hosts:
+    - host: test-cosmichorizon-worker-68a3110f01feebd0.elb.us-gov-west-1.amazonaws.com
+      paths:
+        - path: /sat-image-changes(/)(api/.*)
+          pathType: ImplementationSpecific
+          backendPort: 8000
+          serviceSuffix: backend
+        - path: /sat-image-changes(/)(ws$|ws/.*)
+          pathType: ImplementationSpecific
+          backendPort: 3000
+          serviceSuffix: broker
+        - path: /sat-image-changes(/|$)(.*)
+          pathType: ImplementationSpecific
+          backendPort: 5173
+          serviceSuffix: frontend
+  tls: []

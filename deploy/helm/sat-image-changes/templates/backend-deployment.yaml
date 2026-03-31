@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sat-image-changes.fullname" . }}-backend
+  labels:
+    {{- include "sat-image-changes.labels" . | nindent 4 }}
+    component: backend
+spec:
+  replicas: {{ .Values.backend.replicaCount | default .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "sat-image-changes.selectorLabels" . | nindent 6 }}
+      component: backend
+  template:
+    metadata:
+      labels:
+        {{- include "sat-image-changes.selectorLabels" . | nindent 8 }}
+        component: backend
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy | default .Values.image.pullPolicy }}
+          ports:
+            - name: api
+              containerPort: {{ .Values.backend.service.portApi }}
+              protocol: TCP
+          env:
+            - name: GROQ_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sat-image-changes.fullname" . }}-secrets
+                  key: groq-api-key
+            - name: OLLAMA_BASE_URL
+              value: {{ .Values.backend.env.ollamaBaseUrl | default "http://host.docker.internal:11434" }}
+            - name: DATA_BASE_PATH
+              value: {{ .Values.backend.env.dataBasePath | default "/app/data" }}
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          volumeMounts:
+            - name: data-volume
+              mountPath: /app/data
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: {{ include "sat-image-changes.fullname" . }}-data-pvc
