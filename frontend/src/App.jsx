@@ -209,8 +209,8 @@ export default function App() {
     const [ispyConnected, setIspyConnected] = useState(false);
     const [ispyConnecting, setIspyConnecting] = useState(false);
     const [ispyInstances, setIspyInstances] = useState([]);
-    const [brokerUrl, setBrokerUrl] = useState("ws://localhost:3000"); 
-    const [ispyGroup, setIspyGroup] = useState("");
+    const [brokerUrl, setBrokerUrl] = useState("http://localhost:3001"); 
+    const [ispyGroup, setIspyGroup] = useState("satchange"); // Default group for testing
     const [ispyError, setIspyError] = useState(null);
     const [isFetchingIspy, setIsFetchingIspy] = useState(false);
 
@@ -444,7 +444,7 @@ export default function App() {
                                             onChange={(e) => setBrokerUrl(e.target.value)} 
                                             className="prompt-input" 
                                             style={{flex: 2, height: '36px', marginBottom: 0}}
-                                            placeholder="ws://broker-url" 
+                                            placeholder="http://broker-url" 
                                         />
                                         <input 
                                             type="text" 
